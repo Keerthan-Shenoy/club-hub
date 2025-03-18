@@ -17,7 +17,7 @@ export default function Navbar() {
     { name: 'Home', href: '/', current: false },
     { name: 'Clubs', href: '/clubs', current: false },
     { name: 'Events', href: '/events', current: false },
-    ...(user.isadmin ? [{ name: 'Club Applications', href: '/club-application', current: false }, { name: 'Event Applications', href: '/event-application', current: false }] 
+    ...(user.isadmin ? [{ name: 'Club Applications', href: '/club-application', current: false }, { name: 'Participants', href: '/participant', current: false }] 
       : (user.isclub ? [{ name: 'New Event', href: '/newevent', current: false }] : [{ name: 'New Club', href: '/newclub', current: false }])),
   ]
   const handleSignout=()=>{

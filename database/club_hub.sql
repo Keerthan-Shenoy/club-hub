@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS events (
     venue VARCHAR(30) NOT NULL,
 	FOREIGN KEY (club_id) REFERENCES club(clubId)
 );
+
 CREATE TABLE IF NOT EXISTS members (
     member_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -137,6 +138,10 @@ VALUES
 (4, 6),
 (5, 1);
 
+--Query to delete an event
+DELETE FROM events WHERE event_id = ?;
+
+--Trigger to delete participants when an event is deleted
 DELIMITER //
 
 CREATE TRIGGER delete_event
@@ -148,3 +153,64 @@ END;
 //
 
 DELIMITER ;
+
+--Query to insert new club
+INSERT INTO club_applications(user_id, name, description, campus, type) 
+    VALUES(?, ?, ?, ?, ?);
+
+--Query to insert new event
+INSERT INTO events(club_id, event_name, description_small, description_large, venue, start_date, end_date, start_time, end_time) 
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+--Query to fetch all club applications with user details
+SELECT club_applications.name as club_name, club_applications.description, club_applications.campus, club_applications.type,
+users.first_name, users.last_name, users.srn, users.email, users.contact, users.campus, users.year_of_graduation, users.specialization
+FROM club_applications
+JOIN users 
+ON club_applications.user_id = users.id;
+
+--Query to fetch all events
+SELECT event_id, name, event_name, start_date, events.description_small, events.description_large FROM events JOIN club ON events.club_id = club.clubId;
+
+--Query to register new user
+INSERT INTO users(srn, username, about, first_name, last_name, gender, contact, campus, year_of_graduation, specialization, email, password) 
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+--Query to fetch all clubs
+SELECT * FROM club;
+
+--Nested query to fetch all members of a club
+SELECT member_id, first_name, last_name, position
+FROM (
+    SELECT members.member_id, users.first_name, users.last_name, members.position, members.club_id
+    FROM members
+    JOIN users ON members.user_id = users.id
+) AS subquery
+WHERE club_id = ?;
+
+--Query to update number of views of a club page
+UPDATE club SET viewed = viewed + 1 WHERE clubId = ?;
+
+--Query to insert into participants table when a user joins an event
+INSERT INTO participants(user_id,event_id) VALUES(?,?);
+
+--Query to fetch all participants of an event
+SELECT event_id FROM participants WHERE user_id = ?;
+
+--Query to show user profile
+SELECT srn,gender,contact,campus,year_of_graduation,specialization,about FROM users WHERE id=?;
+
+--Query to fetch all event details
+SELECT * FROM events WHERE event_id = ?;
+
+--Aggregate function to count the number of participants in an event
+SELECT COUNT(event_id) FROM participants WHERE event_id = ?;
+
+--Procedure to fetch all participants of an event
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetEventParticipants`(IN p_event_id INT)
+BEGIN
+    SELECT * 
+    FROM participants 
+    JOIN users ON participants.user_id = users.id 
+    WHERE event_id = p_event_id;
+END

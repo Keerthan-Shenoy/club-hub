@@ -174,10 +174,13 @@ app.get('/clubs/:clubId', (req, res) => {
     console.log('Entered club profile');
     const query1 = 'SELECT * FROM club WHERE clubId = ?'; 
     const query2 = `
-    SELECT members.member_id, users.first_name, users.last_name, members.position
-    FROM members
-    JOIN users ON members.user_id = users.id
-    WHERE members.club_id = ?`;
+    SELECT member_id, first_name, last_name, position
+    FROM (
+        SELECT members.member_id, users.first_name, users.last_name, members.position, members.club_id
+        FROM members
+        JOIN users ON members.user_id = users.id
+    ) AS subquery
+    WHERE club_id = ?`;
     const query3 = 'UPDATE club SET viewed = viewed + 1 WHERE clubId = ?';
     pool.query(query3, [clubId], (err, updateResults) => {
         if (err) {
